@@ -18,18 +18,14 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
+  //create object to send variables to an EJS template
   const templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/:id", (req, res) => {
-  let longURL = "";
-  for (key in urlDatabase) {
-    if (key === req.params.id) {
-      longURL = urlDatabase[key];
-    }
-  }
-  const templateVars = {id: req.params.id, longURL};
+  //create object to send variables to an EJS template
+  const templateVars = {id: req.params.id, longURL: urlDatabase[req.params.id]};
   res.render("urls_show", templateVars);
 });
 
