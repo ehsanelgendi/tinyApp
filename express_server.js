@@ -44,7 +44,8 @@ app.get("/hello", (req, res) => {
 
 app.get("/urls", (req, res) => {
   //create object to send variables to an EJS template
-  const templateVars = { username: req.cookies.username, urls: urlDatabase };
+  const userId = req.cookies.user_id;
+  const templateVars = { user: users[userId], urls: urlDatabase };
   res.render("urls_index", templateVars);
 });
 
@@ -65,13 +66,15 @@ app.post("/urls/:id/delete", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  const templateVars = { username: req.cookies.username, urls: urlDatabase };
+  const userId = req.cookies.user_id;
+  const templateVars = { user: users[userId], urls: urlDatabase };
   res.render("urls_new", templateVars);
 });
 
 app.get("/urls/:id", (req, res) => {
   //create object to send variables to an EJS template
-  const templateVars = {username: req.cookies.username, id: req.params.id, longURL: urlDatabase[req.params.id]};
+  const userId = req.cookies.user_id;
+  const templateVars = { user: users[userId], id: req.params.id, longURL: urlDatabase[req.params.id] };
   res.render("urls_show", templateVars);
 });
 
@@ -104,7 +107,8 @@ app.post("/logout", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  const templateVars = { username: req.cookies.username }
+  const userId = req.cookies.user_id;
+  const templateVars = { user: users[userId] };
   res.render('register', templateVars);
 });
 
@@ -117,7 +121,6 @@ app.post("/register", (req, res) => {
     email: userEmail,
     password: userPassword
   };
-  console.log(users);
   res.cookie('user_id', userId);
   res.redirect('/urls');
 });
