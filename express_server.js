@@ -25,9 +25,20 @@ const users = {
   },
 };
 
+//Generate a random shortURL
 const generateRandomString = () => {
   const randomString = Math.random().toString(16).substring(2, 8);
   return randomString;
+};
+
+//find a user from the users database using the userEmail
+const userLookup = function(users, userEmail) {
+  for (const id in users) {
+    if(users[id].email === userEmail) {
+      return users[id];
+    }
+  }
+  return null;
 };
 
 app.get("/", (req, res) => {
@@ -108,21 +119,30 @@ app.post("/logout", (req, res) => {
 
 app.get("/register", (req, res) => {
   const userId = req.cookies.user_id;
-  const templateVars = { user: users[userId] };
+  const error = '';
+  const templateVars = { user: users[userId], error };
   res.render('register', templateVars);
 });
 
 app.post("/register", (req, res) => {
-  const userId = generateRandomString();
   const userEmail = req.body.email;
   const userPassword = req.body.password;
-  users[userId] = {
-    id: userId,
-    email: userEmail,
-    password: userPassword
-  };
-  res.cookie('user_id', userId);
-  res.redirect('/urls');
+  console.log(userLookup(users, userEmail));
+  if (!userEmail || !userPassword || userLookup(users, userEmail)) {
+    let error = (userLookup(users, userEmail)) ? 'Email already exists!' : 'Email/password cannot be empty!';
+    const userId = req.cookies.user_id;
+    const templateVars = { user: users[userId], error: error };
+    res.status(400).render("register", templateVars);
+  } else {
+    const newUserId = generateRandomString();
+    users[newUserId] = {
+      id: newUserId,
+      email: userEmail,
+      password: userPassword
+    };
+    res.cookie('user_id', newUserId);
+    res.redirect('/urls');
+  }
 });
 
 app.listen(PORT, () => {
