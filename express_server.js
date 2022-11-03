@@ -61,8 +61,15 @@ app.get("/urls", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
+  const userId = req.cookies.user_id;
   const shortURL = generateRandomString();
   const longURL = req.body.longURL;
+
+  //If the user is not logged in, redirect to GET /login
+  if(!users[userId]) {
+    return res.send("<html><body><h4>Please login first to shorten your URL!</h4></body></html>");
+  }
+
   if (longURL.includes('http://') ||  longURL.includes('https://')) {
     urlDatabase[shortURL] = req.body.longURL;
   } else {
@@ -79,6 +86,11 @@ app.post("/urls/:id/delete", (req, res) => {
 app.get("/urls/new", (req, res) => {
   const userId = req.cookies.user_id;
   const templateVars = { user: users[userId], urls: urlDatabase };
+
+  //If the user is not logged in, redirect to GET /login
+  if(!templateVars["user"]) {
+    return res.redirect("/login");
+  }
   res.render("urls_new", templateVars);
 });
 
@@ -102,13 +114,18 @@ app.post("/urls/:id", (req, res) => {
 
 app.get("/u/:id", (req, res) => {
   const longURL = urlDatabase[req.params.id];
+  if(!longURL) {
+    return res.send("<html><body><h4>Shorten URL doesn't exist!</h4></body></html>");
+  }
   res.redirect(longURL);
 });
 
 app.get("/login", (req, res) => {
   const userId = req.cookies.user_id;
+
+  //If the user is logged in, redirect to GET /urls
   if (userId) {
-    res.redirect("/urls");
+    return res.redirect("/urls");
   }
   const error = "";
   const templateVars = { user: users[req.cookies.user_id], error };
@@ -149,6 +166,10 @@ app.get("/register", (req, res) => {
   const userId = req.cookies.user_id;
   const error = "";
   const templateVars = { user: users[userId], error };
+  //If the user is logged in, redirect to GET /urls
+  if (userId) {
+    return res.redirect("/urls");
+  }
   res.render("register", templateVars);
 });
 
