@@ -105,6 +105,15 @@ app.get("/u/:id", (req, res) => {
   res.redirect(longURL);
 });
 
+app.get("/login", (req, res) => {
+  const userId = req.cookies.user_id;
+  if (userId) {
+    res.redirect('/urls');
+  }
+  const templateVars = { user: users[req.cookies.user_id]};
+  res.render("login", templateVars);
+});
+
 app.post("/login", (req, res) => {
   const username = req.body.username;
   res.cookie('username', username);

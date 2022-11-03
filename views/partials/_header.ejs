@@ -28,18 +28,8 @@
         </div>
       </form>
     <% } else { %>
-      <form class="form-inline" method="POST" action="/login">
-        <div class="form-group">
-          <input
-            class="form-control"
-            type="text"
-            name="username"
-            placeholder="Username"
-            style="width: 200px; margin: 1em"
-          />
-        <button type="submit" class="btn btn-outline-dark">Login</button>
-        </div>
-      </form>
+      <a  class="p-2 mb-2 bg-success text-white" href="/register"><b>Register</b></a>
+      <a class="p-2 mb-2 bg-success text-white" href="/login"  ><b>Login</b></a>
     <% } %>
   </nav>
 </header>
