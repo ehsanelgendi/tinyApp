@@ -136,25 +136,25 @@ app.post("/login", (req, res) => {
   const userEmail = req.body.email;
   const userPassword = req.body.password;
   const user = getUserByEmail(users, userEmail);
+  const userId = req.cookies.user_id;
   let error = "";
   
   if (!user) {
     error += "Invalid email/password combination";
-    const userId = req.cookies.user_id;
     const templateVars = { user: users[userId], error: error };
-    res.status(403).render("login", templateVars);
+    return res.status(403).render("login", templateVars);
 
-  } else if (user.password !== userPassword) {
-    error += "Incorrect password";
-    const userId = req.cookies.user_id;
-    const templateVars = { user: users[userId], error: error };
-    res.status(403).render("login", templateVars);
-    
-  } else {
-
-    res.cookie("user_id", user.id);
-    res.redirect("/urls");
   }
+  
+  if (user.password !== userPassword) {
+    error += "Incorrect password";
+    const templateVars = { user: users[userId], error: error };
+    return res.status(403).render("login", templateVars);
+  }
+
+  res.cookie("user_id", user.id);
+  res.redirect("/urls");
+
 });
 
 app.post("/logout", (req, res) => {
@@ -181,17 +181,18 @@ app.post("/register", (req, res) => {
     let error = (user) ? "Email already exists!" : "Email/password cannot be empty!";
     const userId = req.cookies.user_id;
     const templateVars = { user: users[userId], error: error };
-    res.status(400).render("register", templateVars);
-  } else {
-    const newUserId = generateRandomString();
-    users[newUserId] = {
-      id: newUserId,
-      email: userEmail,
-      password: userPassword
-    };
-    res.cookie("user_id", newUserId);
-    res.redirect("/urls");
+    return res.status(400).render("register", templateVars);
   }
+  
+  const newUserId = generateRandomString();
+  users[newUserId] = {
+    id: newUserId,
+    email: userEmail,
+    password: userPassword
+  };
+  res.cookie("user_id", newUserId);
+  res.redirect("/urls");
+
 });
 
 app.listen(PORT, () => {
