@@ -7,9 +7,19 @@ app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// const urlDatabase = {
+//   "b2xVn2": "http://www.lighthouselabs.ca",
+//   "9sm5xK": "http://www.google.com"
+// };
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "userRandomID",
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "user2RandomID",
+  },
 };
 
 const users = {
@@ -41,6 +51,16 @@ const getUserByEmail = function(users, userEmail) {
   return null;
 };
 
+const urlsForUser = function (id, urlDatabase) {
+  let urls = {};
+  for (const key in urlDatabase) {
+    if(urlDatabase[key].userID === id) {
+      urls[key] = urlDatabase[key].longURL;
+    }
+  }
+  return urls;
+};
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -56,7 +76,11 @@ app.get("/hello", (req, res) => {
 app.get("/urls", (req, res) => {
   //create object to send variables to an EJS template
   const userId = req.cookies.user_id;
-  const templateVars = { user: users[userId], urls: urlDatabase };
+  
+  if(!users[userId]) {
+    return res.send("<html><body><h4>Please login first to visit your URLs!</h4></body></html>");
+  }
+  const templateVars = { user: users[userId], urls: urlsForUser(userId, urlDatabase) };
   res.render("urls_index", templateVars);
 });
 
@@ -65,7 +89,7 @@ app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   const longURL = req.body.longURL;
 
-  //If the user is not logged in, redirect to GET /login
+  //If the user is not logged in, send error message
   if(!users[userId]) {
     return res.send("<html><body><h4>Please login first to shorten your URL!</h4></body></html>");
   }
@@ -79,8 +103,27 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/urls/:id/delete", (req, res) => {
-  delete urlDatabase[req.params.id];
+  const id = req.params.id;
+  const userId = req.cookies.user_id;
+
+  //check if url does not exist
+  if(!urlDatabase[id]) {
+    return res.send("<html><body><h4>Sorry, this URL doesn't doesn't exist!</h4></body></html>");
+  }
+
+  //If the user is not logged in, send error message
+  if(!users[userId]) {
+    return res.send("<html><body><h4>Please login first to view your URL!</h4></body></html>");
+  }
+
+  //check if the user does not own the URL
+  if (userId !== urlDatabase[id].userID) { 
+    return res.send("<html><body><h4>Please login first to delete your URL!</h4></body></html>");
+  }
+  
+  delete urlDatabase[id];
   res.redirect('/urls');
+  
 });
 
 app.get("/urls/new", (req, res) => {
@@ -96,24 +139,59 @@ app.get("/urls/new", (req, res) => {
 
 app.get("/urls/:id", (req, res) => {
   //create object to send variables to an EJS template
+  const id = req.params.id;
   const userId = req.cookies.user_id;
-  const templateVars = { user: users[userId], id: req.params.id, longURL: urlDatabase[req.params.id] };
+  const templateVars = { user: users[userId], id: id, urls: urlDatabase[id] };
+  
+  //check if url in not in the database
+  if(!urlDatabase[id]) {
+    return res.send("<html><body><h4>Sorry, this URL doesn't doesn't exist!</h4></body></html>");
+  }
+
+  //If the user is not logged in, send error message
+  if(!users[userId]) {
+    return res.send("<html><body><h4>Please login first to view your URL!</h4></body></html>");
+  }
+
+  //if the user does not own the URL
+  if(userId !== urlDatabase[id].userID) {
+    return res.send("<html><body><h4>Sorry, this shorten URL doesn't belong to you!</h4></body></html>");
+  }
+
   res.render("urls_show", templateVars);
 });
 
 app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
+  const userId = req.cookies.user_id;
   const longURL = req.body.longURL;
+
+  //check if id does not exist
+  if(!urlDatabase[id]) {
+    return res.send("<html><body><h4>Sorry, this URL doesn't doesnit exist!</h4></body></html>");
+  }
+  
+  //check if the user is not logged in
+  if(!users[userId]) {
+    return res.send("<html><body><h4>Please login first to edit your URL!</h4></body></html>");
+  }
+
+  //if the user does not own the URL
+  if(userId !== urlDatabase[id].userID) {
+    return res.send("<html><body><h4>Sorry, this shorten URL doesn't belong to you!</h4></body></html>");
+  }
+
   if (longURL.includes("http://") ||  longURL.includes("https://")) {
-    urlDatabase[id] = req.body.longURL;
+    urlDatabase[id].longURL = req.body.longURL;
   } else {
-    urlDatabase[id] = `http://${req.body.longURL}`;
+    urlDatabase[id].longURL = `http://${req.body.longURL}`;
   }
   res.redirect("/urls");
 });
 
 app.get("/u/:id", (req, res) => {
-  const longURL = urlDatabase[req.params.id];
+  const id = req.params.id;
+  const longURL = urlDatabase[id].longURL;
   if(!longURL) {
     return res.send("<html><body><h4>Shorten URL doesn't exist!</h4></body></html>");
   }
@@ -183,7 +261,7 @@ app.post("/register", (req, res) => {
     const templateVars = { user: users[userId], error: error };
     return res.status(400).render("register", templateVars);
   }
-  
+
   const newUserId = generateRandomString();
   users[newUserId] = {
     id: newUserId,
