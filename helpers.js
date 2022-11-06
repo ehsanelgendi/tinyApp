@@ -1,10 +1,10 @@
-//Generate a random shortURL
+// Generate a random shortURL
 const generateRandomString = () => {
   const randomString = Math.random().toString(16).substring(2, 8);
   return randomString;
 };
 
-//find a user from the users database using the userEmail
+// find a user from the users database using the userEmail
 const getUserByEmail = function(users, userEmail) {
   for (const id in users) {
     if (users[id].email === userEmail) {
@@ -13,6 +13,7 @@ const getUserByEmail = function(users, userEmail) {
   }
 };
 
+// get urls of user by id
 const urlsForUser = function(id, urlDatabase) {
   let urls = {};
   for (const key in urlDatabase) {

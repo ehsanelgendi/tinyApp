@@ -54,22 +54,21 @@ const users = {
 //////////////////////////////
 // Routes
 //////////////////////////////
+
+// redirect to urls
 app.get("/", (req, res) => {
-  res.send("Hello!");
-});
-
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
-
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
-});
-
-app.get("/urls", (req, res) => {
-  //create object to send variables to an EJS template
   const userId = req.session.user_id;
-  
+  // check if user not logged in, redirect to login
+  if (!userId) {
+    return res.redirect("/login");
+  }
+  res.redirect("/urls");
+});
+
+// render index page with user's urls displayed
+app.get("/urls", (req, res) => {
+  const userId = req.session.user_id;
+  // check if user not logged in, send a log in message
   if (!users[userId]) {
     return res.send("<html><body><h4>Please login first to visit your URLs!</h4></body></html>");
   }
@@ -77,12 +76,13 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+// create new shorten url, and redirect to show short url page
 app.post("/urls", (req, res) => {
   const userId = req.session.user_id;
   const shortURL = generateRandomString();
   const longURL = req.body.longURL;
 
-  //If the user is not logged in, send error message
+  // If the user is not logged in, send error message
   if (!userId) {
     return res.send("<html><body><h4>Please login first to shorten your URL!</h4></body></html>");
   }
@@ -95,58 +95,60 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${shortURL}`);
 });
 
+// delete shortened url and redirect to urls page
 app.delete("/urls/:id/delete", (req, res) => {
   const id = req.params.id;
   const userId = req.session.user_id;
 
-  //check if url does not exist
+  // check if url does not exist
   if (!urlDatabase[id]) {
     return res.send("<html><body><h4>Sorry, this URL doesn't doesn't exist!</h4></body></html>");
   }
 
-  //If the user is not logged in, send error message
+  // If the user is not logged in, send error message
   if (!users[userId]) {
     return res.send("<html><body><h4>Please login first to view your URL!</h4></body></html>");
   }
 
-  //check if the user does not own the URL
+  // check if the user does not own the URL
   if (userId !== urlDatabase[id].userID) {
     return res.send("<html><body><h4>Sorry, this shorten URL doesn't belong to you!</h4></body></html>");
   }
   
   delete urlDatabase[id];
-  res.redirect('/urls');
-  
+  res.redirect('/urls');  
 });
 
+// render "add new url" template
 app.get("/urls/new", (req, res) => {
   const userId = req.session.user_id;
   const templateVars = { user: users[userId], urls: urlDatabase };
-
-  //If the user is not logged in, redirect to GET /login
+  
+  // check if the user is not logged in, redirect to GET /login
   if (!templateVars["user"]) {
     return res.redirect("/login");
   }
+
   res.render("urls_new", templateVars);
 });
 
+// render "show url" page
 app.get("/urls/:id", (req, res) => {
-  //create object to send variables to an EJS template
   const id = req.params.id;
   const userId = req.session.user_id;
   const templateVars = { user: users[userId], id: id, urls: urlDatabase[id] };
 
-  //check if url in not in the database
+  // check if url in not in the database
   if (!urlDatabase[id]) {
     return res.send("<html><body><h4>Sorry, this URL doesn't doesn't exist!</h4></body></html>");
   }
 
-  //If the user is not logged in, send error message
+  // check if the user is not logged in, send error message
   if (!users[userId]) {
     return res.send("<html><body><h4>Please login first to view your URL!</h4></body></html>");
   }
 
-  //check if the user does not own the URL
+  // check if the user does not own the URL
   if (userId !== urlDatabase[id].userID) {
     return res.send("<html><body><h4>Sorry, this shorten URL doesn't belong to you!</h4></body></html>");
   }
@@ -154,22 +156,23 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+// edit user's url and redirect to urls psge
 app.put("/urls/:id", (req, res) => {
   const id = req.params.id;
   const userId = req.session.user_id;
   const longURL = req.body.longURL;
 
-  //check if id does not exist
+  // check if id does not exist
   if (!urlDatabase[id]) {
     return res.send("<html><body><h4>Sorry, this URL doesn't doesnit exist!</h4></body></html>");
   }
   
-  //check if the user is not logged in
+  // check if the user is not logged in
   if (!users[userId]) {
     return res.send("<html><body><h4>Please login first to edit your URL!</h4></body></html>");
   }
 
-  //if the user does not own the URL
+  // check if the user does not own the URL
   if (userId !== urlDatabase[id].userID) {
     return res.send("<html><body><h4>Sorry, this shorten URL doesn't belong to you!</h4></body></html>");
   }
@@ -182,6 +185,7 @@ app.put("/urls/:id", (req, res) => {
   res.redirect("/urls");
 });
 
+// redirect to the long url page
 app.get("/u/:id", (req, res) => {
   const id = req.params.id;
   // check if url in not in the db
@@ -191,18 +195,21 @@ app.get("/u/:id", (req, res) => {
   res.redirect(urlDatabase[id].longURL);
 });
 
+// render log in page
 app.get("/login", (req, res) => {
   const userId = req.session.user_id;
 
-  //If the user is logged in, redirect to GET /urls
+  // check if the user is logged in, redirect to GET /urls
   if (userId) {
     return res.redirect("/urls");
   }
+
   const error = "";
   const templateVars = { user: users[userId], error };
   res.render("login", templateVars);
 });
 
+// log in and redirect to urls page
 app.post("/login", (req, res) => {
   const userEmail = req.body.email;
   const userPassword = req.body.password;
@@ -229,11 +236,13 @@ app.post("/login", (req, res) => {
 
 });
 
+// logout, clear session and redirect to log in
 app.post("/logout", (req, res) => {
   req.session = null;
   res.redirect("/login");
 });
 
+// render register page
 app.get("/register", (req, res) => {
   const userId = req.session.user_id;
   const error = "";
@@ -245,6 +254,7 @@ app.get("/register", (req, res) => {
   res.render("register", templateVars);
 });
 
+// register user, and redirect to urls page
 app.post("/register", (req, res) => {
   const userEmail = req.body.email;
   const userPassword = req.body.password;
