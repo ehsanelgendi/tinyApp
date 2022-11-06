@@ -1,6 +1,7 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const { getUserByEmail } = require("./helpers");
+const methodOverride = require('method-override')
 
 const app = express();
 const PORT = 8080; // default port 8080
@@ -12,6 +13,7 @@ app.use(cookieSession({
   name: 'session',
   keys: ['key1', 'key2'],
 }));
+app.use(methodOverride('_method'));
 
 // const urlDatabase = {
 //   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -98,7 +100,7 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${shortURL}`);
 });
 
-app.post("/urls/:id/delete", (req, res) => {
+app.delete("/urls/:id/delete", (req, res) => {
   const id = req.params.id;
   const userId = req.session.user_id;
 
@@ -138,9 +140,7 @@ app.get("/urls/:id", (req, res) => {
   const id = req.params.id;
   const userId = req.session.user_id;
   const templateVars = { user: users[userId], id: id, urls: urlDatabase[id] };
-  console.log(templateVars);
-  console.log(users);
-  console.log(urlDatabase);
+
   //check if url in not in the database
   if(!urlDatabase[id]) {
     return res.send("<html><body><h4>Sorry, this URL doesn't doesn't exist!</h4></body></html>");
@@ -159,11 +159,10 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-app.post("/urls/:id", (req, res) => {
+app.put("/urls/:id", (req, res) => {
   const id = req.params.id;
   const userId = req.session.user_id;
   const longURL = req.body.longURL;
-  // console.log('line172', longURL);
 
   //check if id does not exist
   if(!urlDatabase[id]) {
@@ -185,7 +184,6 @@ app.post("/urls/:id", (req, res) => {
   } else {
     urlDatabase[id].longURL = `http://${req.body.longURL}`;
   }
-  // console.log('line194', urlDatabase[id]);
   res.redirect("/urls");
 });
 
