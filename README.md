@@ -6,6 +6,8 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 !["User Log in page"](https://github.com/ehsanelgendi/tinyApp/blob/main/docs/login-page.png?raw=true)
 
+!["User Log in page"](https://github.com/ehsanelgendi/tinyApp/blob/main/docs/createURL-page.png?raw=true)
+
 !["User URL's page"](https://github.com/ehsanelgendi/tinyApp/blob/main/docs/urls-page.png?raw=true)
 
 !["User shorten URL's Info page"](https://github.com/ehsanelgendi/tinyApp/blob/main/docs/shortenURL-page.png?raw=true)
