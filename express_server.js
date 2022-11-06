@@ -1,12 +1,21 @@
+//////////////////////////////
+// Requirments
+//////////////////////////////
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const { generateRandomString, getUserByEmail, urlsForUser } = require("./helpers");
-const methodOverride = require('method-override')
+const methodOverride = require('method-override');
 
+//////////////////////////////
+// Configurations
+//////////////////////////////
 const app = express();
 const PORT = 8080; // default port 8080
-var cookieSession = require('cookie-session')
+const cookieSession = require('cookie-session');
 
+//////////////////////////////
+// Middleware
+//////////////////////////////
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieSession({
@@ -15,10 +24,9 @@ app.use(cookieSession({
 }));
 app.use(methodOverride('_method'));
 
-// const urlDatabase = {
-//   "b2xVn2": "http://www.lighthouselabs.ca",
-//   "9sm5xK": "http://www.google.com"
-// };
+//////////////////////////////
+// Data
+//////////////////////////////
 const urlDatabase = {
   b6UTxQ: {
     longURL: "https://www.tsn.ca",
@@ -43,6 +51,9 @@ const users = {
   },
 };
 
+//////////////////////////////
+// Routes
+//////////////////////////////
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -59,7 +70,7 @@ app.get("/urls", (req, res) => {
   //create object to send variables to an EJS template
   const userId = req.session.user_id;
   
-  if(!users[userId]) {
+  if (!users[userId]) {
     return res.send("<html><body><h4>Please login first to visit your URLs!</h4></body></html>");
   }
   const templateVars = { user: users[userId], urls: urlsForUser(userId, urlDatabase) };
@@ -72,7 +83,7 @@ app.post("/urls", (req, res) => {
   const longURL = req.body.longURL;
 
   //If the user is not logged in, send error message
-  if(!userId) {
+  if (!userId) {
     return res.send("<html><body><h4>Please login first to shorten your URL!</h4></body></html>");
   }
 
@@ -89,17 +100,17 @@ app.delete("/urls/:id/delete", (req, res) => {
   const userId = req.session.user_id;
 
   //check if url does not exist
-  if(!urlDatabase[id]) {
+  if (!urlDatabase[id]) {
     return res.send("<html><body><h4>Sorry, this URL doesn't doesn't exist!</h4></body></html>");
   }
 
   //If the user is not logged in, send error message
-  if(!users[userId]) {
+  if (!users[userId]) {
     return res.send("<html><body><h4>Please login first to view your URL!</h4></body></html>");
   }
 
   //check if the user does not own the URL
-  if (userId !== urlDatabase[id].userID) { 
+  if (userId !== urlDatabase[id].userID) {
     return res.send("<html><body><h4>Sorry, this shorten URL doesn't belong to you!</h4></body></html>");
   }
   
@@ -113,7 +124,7 @@ app.get("/urls/new", (req, res) => {
   const templateVars = { user: users[userId], urls: urlDatabase };
 
   //If the user is not logged in, redirect to GET /login
-  if(!templateVars["user"]) {
+  if (!templateVars["user"]) {
     return res.redirect("/login");
   }
   res.render("urls_new", templateVars);
@@ -126,17 +137,17 @@ app.get("/urls/:id", (req, res) => {
   const templateVars = { user: users[userId], id: id, urls: urlDatabase[id] };
 
   //check if url in not in the database
-  if(!urlDatabase[id]) {
+  if (!urlDatabase[id]) {
     return res.send("<html><body><h4>Sorry, this URL doesn't doesn't exist!</h4></body></html>");
   }
 
   //If the user is not logged in, send error message
-  if(!users[userId]) {
+  if (!users[userId]) {
     return res.send("<html><body><h4>Please login first to view your URL!</h4></body></html>");
   }
 
   //check if the user does not own the URL
-  if(userId !== urlDatabase[id].userID) {
+  if (userId !== urlDatabase[id].userID) {
     return res.send("<html><body><h4>Sorry, this shorten URL doesn't belong to you!</h4></body></html>");
   }
 
@@ -149,17 +160,17 @@ app.put("/urls/:id", (req, res) => {
   const longURL = req.body.longURL;
 
   //check if id does not exist
-  if(!urlDatabase[id]) {
+  if (!urlDatabase[id]) {
     return res.send("<html><body><h4>Sorry, this URL doesn't doesnit exist!</h4></body></html>");
   }
   
   //check if the user is not logged in
-  if(!users[userId]) {
+  if (!users[userId]) {
     return res.send("<html><body><h4>Please login first to edit your URL!</h4></body></html>");
   }
 
   //if the user does not own the URL
-  if(userId !== urlDatabase[id].userID) {
+  if (userId !== urlDatabase[id].userID) {
     return res.send("<html><body><h4>Sorry, this shorten URL doesn't belong to you!</h4></body></html>");
   }
 
@@ -174,7 +185,7 @@ app.put("/urls/:id", (req, res) => {
 app.get("/u/:id", (req, res) => {
   const id = req.params.id;
   // check if url in not in the db
-  if(!urlDatabase[id]) {
+  if (!urlDatabase[id]) {
     return res.send("<html><body><h4>Shorten URL doesn't exist!</h4></body></html>");
   }
   res.redirect(urlDatabase[id].longURL);
@@ -257,6 +268,9 @@ app.post("/register", (req, res) => {
 
 });
 
+//////////////////////////////
+// Listener
+//////////////////////////////
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
