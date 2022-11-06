@@ -1,6 +1,6 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
-const { getUserByEmail } = require("./helpers");
+const { generateRandomString, getUserByEmail, urlsForUser } = require("./helpers");
 const methodOverride = require('method-override')
 
 const app = express();
@@ -41,22 +41,6 @@ const users = {
     email: "user2@example.com",
     password: "dishwasher-funk",
   },
-};
-
-//Generate a random shortURL
-const generateRandomString = () => {
-  const randomString = Math.random().toString(16).substring(2, 8);
-  return randomString;
-};
-
-const urlsForUser = function (id, urlDatabase) {
-  let urls = {};
-  for (const key in urlDatabase) {
-    if(urlDatabase[key].userID === id) {
-      urls[key] = urlDatabase[key].longURL;
-    }
-  }
-  return urls;
 };
 
 app.get("/", (req, res) => {
