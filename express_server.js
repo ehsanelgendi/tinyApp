@@ -116,7 +116,7 @@ app.delete("/urls/:id/delete", (req, res) => {
 
   //check if the user does not own the URL
   if (userId !== urlDatabase[id].userID) { 
-    return res.send("<html><body><h4>Please login first to delete your URL!</h4></body></html>");
+    return res.send("<html><body><h4>Sorry, this shorten URL doesn't belong to you!</h4></body></html>");
   }
   
   delete urlDatabase[id];
@@ -151,10 +151,10 @@ app.get("/urls/:id", (req, res) => {
     return res.send("<html><body><h4>Please login first to view your URL!</h4></body></html>");
   }
 
-  //if the user does not own the URL
-  // if(userId !== urlDatabase[id].userID) {
-  //   return res.send("<html><body><h4>Sorry, this shorten URL doesn't belong to you!</h4></body></html>");
-  // }
+  //check if the user does not own the URL
+  if(userId !== urlDatabase[id].userID) {
+    return res.send("<html><body><h4>Sorry, this shorten URL doesn't belong to you!</h4></body></html>");
+  }
 
   res.render("urls_show", templateVars);
 });
@@ -189,11 +189,11 @@ app.put("/urls/:id", (req, res) => {
 
 app.get("/u/:id", (req, res) => {
   const id = req.params.id;
-  const longURL = urlDatabase[id].longURL;
-  if(!longURL) {
+  // check if url in not in the db
+  if(!urlDatabase[id]) {
     return res.send("<html><body><h4>Shorten URL doesn't exist!</h4></body></html>");
   }
-  res.redirect(longURL);
+  res.redirect(urlDatabase[id].longURL);
 });
 
 app.get("/login", (req, res) => {
